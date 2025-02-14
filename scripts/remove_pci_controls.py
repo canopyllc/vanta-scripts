@@ -1,6 +1,7 @@
 import csv
 import json
 import time
+import argparse
 from functools import lru_cache
 from textwrap import dedent
 
@@ -53,6 +54,8 @@ def read_controls_from_csv(filename):
         with open(filename, "r", encoding="utf-8-sig") as file:
             reader = csv.DictReader(file)
             for row in reader:
+                if row["scope"] != "Not applicable":
+                    continue
                 controls.append(row["pci_dss_req_num"])
         log.info(f"Successfully read {len(controls)} controls from CSV")
         return controls
@@ -102,9 +105,7 @@ def remove_control(control_id):
         return False
 
 
-def main():
-    csv_file = "pci_controls_to_remove.csv"
-
+def main(csv_file):
     try:
         # Read controls from CSV
         controls_to_remove = read_controls_from_csv(csv_file)
@@ -168,4 +169,10 @@ if __name__ == "__main__":
     logging.basicConfig(
         level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
     )
-    main()
+
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Remove PCI controls from Vanta.")
+    parser.add_argument("csv_file", help="Path to the CSV file containing controls to remove")
+    args = parser.parse_args()
+
+    main(args.csv_file)
